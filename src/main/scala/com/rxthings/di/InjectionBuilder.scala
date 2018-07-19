@@ -128,7 +128,7 @@ private[di] object Internals {
 
   def randname: String = Random.alphanumeric.take(10).mkString
 
-  def provider[T: Manifest](annotated: Option[String] = None, ignore: Boolean)(implicit inj: Injector): Option[Provider[T]] = {
+  def provider[T: Manifest](annotated: Option[String] = None, ignore: Boolean = false)(implicit inj: Injector): Option[Provider[T]] = {
     annotated match {
       case None => prov(stdKey[T], ignore)
       case Some(anno) =>
