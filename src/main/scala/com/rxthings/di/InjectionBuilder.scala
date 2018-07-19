@@ -5,7 +5,6 @@ import javax.inject.Provider
 import akka.actor._
 import com.google.inject.{Injector, Key, TypeLiteral}
 import com.rxthings.di.Internals.BaseInjectionBuilder
-import net.codingwell.scalaguice.InjectorExtensions._
 import net.codingwell.scalaguice.KeyExtensions._
 import net.codingwell.scalaguice._
 
@@ -80,7 +79,7 @@ private[di] object Internals {
 
     implicit lazy val injector: Injector = ip()
 
-    def required: T = checkopt(optional) match {
+    def required: T = checkopt(opt(false)) match {
       case Success(t) => t
       case Failure(ex@InjectionNotAvailable(_)) =>
         throw ex.copy(name = annotatedName)
@@ -88,7 +87,9 @@ private[di] object Internals {
         throw ex
     }
 
-    def optional: Option[T] = provider[T](annotatedName.map(_.name)).map(_.get())
+    def optional: Option[T] = opt(true)
+
+    private def opt(ignore: Boolean): Option[T] = provider[T](annotatedName.map(_.name), ignore).map(_.get())
   }
 
   class ActorInjectionBuilderImpl[T <: Actor : Manifest](sys: ActorSystem, ctx: Option[ActorContext])
@@ -102,7 +103,7 @@ private[di] object Internals {
       ThisBuilder()
     }
 
-    def required: ActorRef = checkopt(optional) match {
+    def required: ActorRef = checkopt(opt(false)) match {
       case Success(ref) => ref
       case Failure(ex@InjectionNotAvailable(_)) =>
         throw ex.copy(name = annotatedName)
@@ -110,9 +111,10 @@ private[di] object Internals {
         throw ex
     }
 
+    def optional: Option[ActorRef] = opt(true)
 
-    def optional: Option[ActorRef] = {
-      provider[T](annotatedName.map(_.name)).map(p =>
+    private def opt(ignore: Boolean): Option[ActorRef] = {
+      provider[T](annotatedName.map(_.name), ignore).map(p =>
         ctx.getOrElse(sys).actorOf(Props(p.get), actorName.map(_.name).getOrElse(randname))
       )
     }
@@ -126,19 +128,23 @@ private[di] object Internals {
 
   def randname: String = Random.alphanumeric.take(10).mkString
 
-  def provider[T: Manifest](annotated: Option[String] = None)(implicit inj: Injector): Option[Provider[T]] = {
+  def provider[T: Manifest](annotated: Option[String] = None, ignore: Boolean)(implicit inj: Injector): Option[Provider[T]] = {
     annotated match {
-      case None => prov(stdKey[T])
+      case None => prov(stdKey[T], ignore)
       case Some(anno) =>
-        prov(annoKey[T](anno)) match {
+        prov(annoKey[T](anno), ignore) match {
           case opt@Some(_) => opt
           case None => throw new IllegalStateException(s"no provider for annotation @Named($anno)")
         }
     }
   }
 
-  def prov[T: Manifest](keyFn: TypeLiteral[T] => Key[T])(implicit inj: Injector): Option[Provider[T]] = {
-    inj.existingBinding(keyFn(typeLiteral[T])).map(_.getProvider)
+  def prov[T: Manifest](keyFn: TypeLiteral[T] => Key[T], ignore: Boolean)(implicit inj: Injector): Option[Provider[T]] = {
+    Option(try {
+      inj.getBinding(keyFn(typeLiteral[T]))
+    } catch {
+      case th: Throwable => if (ignore) null else throw th
+    }).map(_.getProvider)
   }
 
   def stdKey[T: Manifest](tlit: TypeLiteral[T]) = tlit.toKey

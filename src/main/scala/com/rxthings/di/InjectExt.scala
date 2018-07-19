@@ -34,6 +34,19 @@ object InjectExt extends ExtensionId[InjectExtImpl] with ExtensionIdProvider wit
     this
   }
 
+  private val parentInjector: ThreadLocal[Option[Injector]] = ThreadLocal.withInitial(
+    new java.util.function.Supplier[Option[Injector]] {
+      override def get(): Option[Injector] = None
+  })
+
+  /**
+   * Manually add the parent injector
+   * The parent injector must be added prior to creating the ActorSystem
+   */
+  def setParentInjector(injector: Injector): Unit = {
+    if (injector != null) parentInjector.set(Some(injector))
+  }
+
   // internals \\
 
   override def createExtension(sys: ExtendedActorSystem) = {
@@ -50,7 +63,16 @@ object InjectExt extends ExtensionId[InjectExtImpl] with ExtensionIdProvider wit
 
     val finalModules = addCfgModule(config) :: modules
     val defaultModules = Seq(Defaults.actorSystem(sys))
-    val injector = Guice.createInjector(finalModules ++ defaultModules: _*)
+    val injector = parentInjector.get match {
+      case None => Guice.createInjector(finalModules ++ defaultModules: _*)
+      case Some(parent) => parent.createChildInjector(finalModules ++ defaultModules: _*)
+    }
+
+    sys.log.info("InjectExt created for ActorSystem - " + sys.name + (parentInjector.get match {
+      case None => ""
+      case Some(i) => " with parent Injector " + injector
+    }))
+
     new InjectExtImpl(injector)
   }
 
@@ -101,6 +123,7 @@ object InjectExtBuilder {
   val injectConfigurationKey = "akka.inject.cfg"
 
   def addCfgModule(cfg: Config): Module = {
+
     cfg.getAs[Boolean](injectConfigurationKey).getOrElse(true) match {
       case true => new ConfigModule(cfg)
       case false => Modules.EMPTY_MODULE
@@ -110,6 +133,6 @@ object InjectExtBuilder {
 
 private object Defaults {
   def actorSystem(sys: ActorSystem) = new ScalaModule {
-    def configure(): Unit = bind[ActorSystem].toInstance(sys)
+    override def configure(): Unit = bind[ActorSystem].toInstance(sys)
   }
 }
