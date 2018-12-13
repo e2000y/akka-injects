@@ -1,0 +1,21 @@
+package com.github.jw3.di.test
+
+import java.util.UUID
+
+import net.codingwell.scalaguice.ScalaModule
+
+import scala.util.Random
+
+
+object SpiTests {
+  val stringVal = UUID.randomUUID().toString
+  val intVal = Random.nextInt
+}
+
+class SpiModule1 extends ScalaModule {
+  override def configure(): Unit = bind[String].toInstance(SpiTests.stringVal)
+}
+
+class SpiModule2 extends ScalaModule {
+  override def configure(): Unit = bind[Int].toInstance(SpiTests.intVal)
+}

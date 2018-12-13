@@ -1,13 +1,12 @@
 language: scala
 
-before_install:
- - chmod +x scripts/travis.sh
-
 scala:
    - 2.11.8
-   - 2.12.1
+   - 2.12.6
 jdk:
   - oraclejdk8
 
 script:
-  - "scripts/travis.sh"
+  - sbt ++$TRAVIS_SCALA_VERSION test
+  - if [[ ! -z "$TRAVIS_TAG" ]]; then sbt ++$TRAVIS_SCALA_VERSION publish; fi
+  - if [[ ! -z "$UPDATEIMPACT_API_KEY" ]]; then sbt ++$TRAVIS_SCALA_VERSION updateImpactSubmit; fi

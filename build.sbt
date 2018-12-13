@@ -1,6 +1,9 @@
-organization := "com.rxthings"
+
+enablePlugins(GitVersioning)
+
+organization := "com.github.jw3"
 name := "akka-injects"
-version := "0.9-SNAPSHOT"
+git.useGitDescribe := true
 licenses +=("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 crossScalaVersions := Seq("2.11.8", "2.12.6")
@@ -24,13 +27,13 @@ scalacOptions ++= Seq(
 )
 
 resolvers ++= Seq(
-    "jw3 at bintray" at "https://dl.bintray.com/jw3/maven",
+    Resolver.bintrayRepo("jw3", "maven"),
     Resolver.jcenterRepo
 )
 
 libraryDependencies ++= {
-    val akkaVersion = "2.5.13"
-    val scalatestVersion = "3.0.0"
+    val akkaVersion = "2.5.14"
+    val scalatestVersion = "3.0.3"
 
     Seq(
         "com.iheart" %% "ficus" % "1.4.4",
