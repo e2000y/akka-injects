@@ -33,8 +33,8 @@ libraryDependencies ++= {
     val scalatestVersion = "3.0.0"
 
     Seq(
-        "com.iheart" %% "ficus" % "1.4.3",
-        "net.codingwell" %% "scala-guice" % "4.2.0",
+        "com.iheart" %% "ficus" % "1.4.4",
+        "net.codingwell" %% "scala-guice" % "4.2.2",
 
         "com.typesafe.akka" %% "akka-actor" % akkaVersion,
         "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Runtime,
