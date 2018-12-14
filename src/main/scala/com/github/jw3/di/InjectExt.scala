@@ -18,16 +18,9 @@ import scala.collection.mutable
  * @param injector top level Guice Injector
  */
 class InjectExtImpl(name: String, log: akka.event.LoggingAdapter, modules: Seq[Module]) extends Extension with InjectExtBuilder {
-  private val manualModules: ThreadLocal[mutable.Set[Module]] = ThreadLocal.withInitial(
-    new java.util.function.Supplier[mutable.Set[Module]] {
-      override def get(): mutable.Set[Module] = mutable.Set[Module]()
-    }
-  )
-  private val parentInjector: ThreadLocal[Option[Injector]] = ThreadLocal.withInitial(
-    new java.util.function.Supplier[Option[Injector]] {
-      override def get(): Option[Injector] = None
-  })
-  private var acceptingModules: Boolean = true
+  private val manualModules = mutable.Set.empty[Module]
+  private var parentInjector = Option.empty[Injector]
+  private var acceptingModules = true
 
   /**
     * Manually add modules to the injector
@@ -35,35 +28,37 @@ class InjectExtImpl(name: String, log: akka.event.LoggingAdapter, modules: Seq[M
     */
   def addModules(m: Module*): InjectExtImpl = {
     if(!acceptingModules) throw new UnsupportedOperationException("injector was already initialized")
-    manualModules.set(manualModules.get() ++ m)
+    manualModules ++= m
     this
   }
 
   def setParentInjector(injector: Injector): InjectExtImpl = {
     if(!acceptingModules) throw new UnsupportedOperationException("injector was already initialized")
-    if (injector != null) parentInjector.set(Some(injector))
+    if (injector != null) parentInjector = Some(injector)
     this
   }
 
   lazy val injector: Injector = {
     acceptingModules = false
 
+    val nm = modules ++ manualModules
+
     try {
-      parentInjector.get match {
+      parentInjector match {
         case None => {
           log.info("InjectExt created for ActorSystem - " + name)
 
-          Guice.createInjector(modules ++ manualModules.get: _*)
+          Guice.createInjector(nm.toArray: _*)
         }
         case Some(parent) => {
           log.info("InjectExt created for ActorSystem - " + name + " with parent Injector " + parent)
 
-          parent.createChildInjector(modules ++ manualModules.get: _*)
+          parent.createChildInjector(nm.toArray: _*)
         }
       }
     } finally {
-      manualModules.remove()
-      parentInjector.remove()
+      manualModules.clear()
+      parentInjector = None
     }
   }
 }
