@@ -32,12 +32,12 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= {
-    val akkaVersion = "2.5.14"
+    val akkaVersion = "2.5.23"
     val scalatestVersion = "3.0.3"
 
     Seq(
         "com.iheart" %% "ficus" % "1.4.4",
-        "net.codingwell" %% "scala-guice" % "4.2.2",
+        "net.codingwell" %% "scala-guice" % "4.2.4",
 
         "com.typesafe.akka" %% "akka-actor" % akkaVersion,
         "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Runtime,
