@@ -6,9 +6,9 @@ name := "akka-injects"
 git.useGitDescribe := true
 licenses +=("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-crossScalaVersions := Seq("2.11.8", "2.12.6")
+crossScalaVersions := Seq("2.11.8", "2.12.6", "2.13.1")
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.13.1"
 
 scalacOptions ++= Seq(
     "-target:jvm-1.8",
@@ -21,7 +21,7 @@ scalacOptions ++= Seq(
     "-language:postfixOps",
     "-language:implicitConversions",
 
-    "-Ywarn-unused-import",
+    "-Xlint:unused",
     "-Xfatal-warnings",
     "-Xlint:_"
 )
@@ -32,16 +32,16 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= {
-    val akkaVersion = "2.5.23"
-    val scalatestVersion = "3.0.3"
+    val akkaVersion = "2.6.1"
+    val scalatestVersion = "3.0.8"
 
     Seq(
-        "com.iheart" %% "ficus" % "1.4.4",
-        "net.codingwell" %% "scala-guice" % "4.2.3",
+        "com.iheart" %% "ficus" % "1.4.7",
+        "net.codingwell" %% "scala-guice" % "4.2.6",
 
         "com.typesafe.akka" %% "akka-actor" % akkaVersion,
         "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Runtime,
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
 
         "org.scalactic" %% "scalactic" % scalatestVersion % Test,
         "org.scalatest" %% "scalatest" % scalatestVersion % Test,

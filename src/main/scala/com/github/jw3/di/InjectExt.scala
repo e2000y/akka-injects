@@ -9,7 +9,7 @@ import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import net.codingwell.scalaguice.ScalaModule
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 /**

@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigValue}
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Bind Config values as @Named(path)
